@@ -1,0 +1,575 @@
+  {
+	Algo BaTaille_Navalle
+//BUT:Le jeu de la baTaille Navale
+//ENTREE: Entrer 1 axe d'ordonné et un axe d'ascise
+//SORTIE: Afficher un jeu type de baTaille Navale
+ 
+CONST
+	Max = 10  					//Taille de la map
+	BateauMax = 5  				//Nombre de Bateau ou le Max est de 8
+	TailleMax = 6  				//Taille des Bateau ou le Max est de 8
+Type
+	Cellule = ENREGISTREMENT
+		Ligne : ENTIER
+		Colonne : ENTIER
+	FINENREGISTREMENT
+	
+Type
+	Bateau = ENREGISTREMENT
+		n : Cellule
+		Taille : ENTIER
+		nom : CHAINE
+	FINENREGISTREMENT
+	
+Type
+	Flotte = ENREGISTREMENT
+		n1 : Bateau
+	FINENREGISTREMENT
+	
+Type	
+	Marge = ENREGISTREMENT
+		x : ENTIER
+		y : ENTIER
+	FINENREGISTREMENT
+	
+Type
+	TabCellule = TABLEAU [1..100] DE Cellule
+	TabBateau = TABLEAU [1..100] DE Bateau
+	TabFlotte = TABLEAU [1..BateauMax&1..100] DE Flotte
+	TabNom = TABLEAU [1..8] DE CHAINE
+	Tab = TABLEAU [1..20] DE ENTIER
+	
+//BUT:		Initialisation a 0 des position des Cellules
+//ENTREE:	1 tableau d'entier, 1 entier, 1 constante
+//SORTIE:	1 tableau d'entier set a 0
+ 
+PROCEDURE IniTabCellule(VAR PosCellule,CelluleAuche:TabCellule)
+
+VAR
+	i : ENTIER
+	
+DEBUT
+	POUR i <- 1 A Max FAIRE
+		PosCellule[i].Colonne <- 0
+		PosCellule[i].Ligne <- 0
+		CelluleAuche[i].Colonne <- 0
+		CelluleAuche[i].Ligne <- 0
+	FINPOUR
+																										
+//BUT:		Initialisation a 0 de la Flotte
+//ENTREE:	2 tableau avec 1 sous type TabFlotte et 1 sous type TabBateau
+//SORTIE:	2 tableau avec valeur 0
+
+PROCEDURE IniTabFlotte(VAR Bateau:TabBateau  VAR Ensemble:TabFlotte)
+
+VAR
+	i : ENTIER
+	j : ENTIER
+
+DEBUT
+	POUR i DE 1 A Max FAIRE
+		Bateau[i].n.Colonne <- 0
+		Bateau[i].n.Ligne <- 0
+		POUR j DE 1 A BateauMax FAIRE
+			Ensemble[j&i].n1.n.Colonne <- 0
+			Ensemble[j&i].n1.n.Ligne <- 0
+		FINPOUR
+	FINPOUR
+FIN
+	
+	
+//BUT:		Affiche la map du jeu
+//ENTREE:	3 Entier
+//SORTIE:	Affichage
+
+PROCEDURE AfficheMap()
+
+VAR
+	cpt : ENTIER
+	i : ENTIER
+	j : ENTIER
+
+DEBUT
+		cpt<-7
+	POUR i<-1 A Max FAIRE		//Afficher 1-10 horizontal
+		GoAxY(cpt&5)
+		ECRIRE i
+		cpt<-cpt+4
+	FINPOUR
+	
+	
+	cpt<-8
+	POUR i DE 1 A Max FAIRE		//Affiche 1-10 vertical
+		POUR j DE 1 A Max*3 FAIRE
+			GoAxY(3&cpt)
+			ECRIRE'Chr(i+64)'
+		FIN
+		cpt <- cpt+3
+	FINPOUR
+		
+FIN
+
+//BUT:		Enlever le texte
+//ENTREE:	2 entier
+//SORTIE:	affichage
+
+PROCEDURE Clrtxt2()
+
+VAR
+	
+	i : ENTIER
+	j : ENTIER
+
+DEBUT
+	POUR i DE 13 A 29 FAIRE
+		POUR j DE 49 A 71 FAIRE
+			GoAxY(j&i)
+			ECRIRE' '
+		FINPOUR
+	FINPOUR
+FIN
+
+//BUT:		Enlever le texte 
+//ENTREE:	2 Entier
+//SORTIE:	Affichage
+
+PROCEDURE Clrtxt3()
+
+VAR
+	i : ENTIER
+	j : ENTIER
+
+DEBUT
+	POUR i DE 34 A 35 FAIRE
+		POUR j DE 49 A 85 FAIRE
+			GoAxY(j&i)
+			ECRIRE' '
+		FINPOUR
+	FINPOUR
+FIN
+
+//BUT:		Test les cases suivante dans la direction X pour chaque Taille de bateau
+//ENTREE:	1 tableau type TabBateau, 1 tableau type TabCellule 5 entier  2 BOOLEEN
+//SORTIE:	1 BOOLEEN
+
+FONCTION TestCaseLigne(Bateau:TabBateau ; PosCellule:TabCellule x,y,i:ENTIER) DE BOOLEEN
+
+VAR
+	j : ENTIER
+	Test : BOOLEEN
+	Test2 : BOOLEEN
+	
+DEBUT
+	Test <- FAUX
+	Test2 <- VRAI
+	POUR j DE 1 A Bateau[i].Taille FAIRE			
+	
+	// Cellule bateau y <> position y ET Cellule bateau x <>  position x + j
+		
+		SI (Bateau[j].n.Colonne<>PosCellule[y].Colonne) ET (Bateau[j].n.Ligne<>PosCellule[(x+(j-1))].Ligne) ALORS
+			Test <- VRAI 	
+		FINSI
+		SI Test = FAUX ALORS
+			Test2 <- FAUX
+		FINSI
+	FINPOUR
+	
+	SI Test2 = FAUX ALORS
+		Test <- FAUX
+	FINSI
+	
+TestCaseLigne<-Test
+FIN
+
+//BUT:		Test les cases suivante dans la direction y pour chaque Taille d'un bateau
+//ENTREE:	1 tableau type TabBateau, 1 tableau type TabCellule, 5 entier, 2 BOOLEEN
+//SORTIE:	1 BOOLEEN
+
+FONCTION TestCaseColonne(Bateau:TabBateau ; PosCellule:TabCellule x ,y,i:ENTIER):BOOLEEN
+
+VAR
+	j:ENTIER
+	Test : BOOLEEN
+	Test2 : BOOLEEN
+
+DEBUT
+	Test <- FAUX 	
+	POUR j DE 1 A Bateau[i].Taille FAIRE
+		SI (Bateau[j].n.Colonne<>PosCellule[(y+(j-1))].Colonne) ET (Bateau[j].n.Ligne<>PosCellule[x].Ligne) ALORS
+			Test <- VRAI 	
+		FINSI		
+		SI Test = FAUX ALORS
+			Test2 <- FAUX
+		FINSI
+	FINPOUR
+	
+	SI Test2 = FAUX ALORS
+		Test <- FAUX
+	FINSI
+	TestCaseColonne <- Test
+FIN
+
+//BUT:		Test pour que les bateaux de se superpose pas
+//ENTREE:	1 tableau type TabBateau, 1 tableau type TabFlotte, 4 entier, 1 booleen
+//SORTIE:	1 BOOLEEN
+
+FONCTION TestCase(Bateau:TabBateau ; Ensemble:TabFlotte):BOOLEEN
+
+VAR
+	i : ENTIER
+	j : ENTIER
+	l : ENTIER
+	k : ENTIER
+	Test : BOOLEEN
+
+DEBUT
+	Test <- VRAI
+	
+	POUR i DE 1 A BateauMax FAIRE
+		POUR j DE 1 A BateauMax FAIRE
+			POUR k DE 1 A Bateau[i].Taille FAIRE
+				POUR l DE 1 A Bateau[i].Taille FAIRE
+					SI (Ensemble[i&k].n1.n.Ligne=Ensemble[j&l].n1.n.Ligne) ET (Ensemble[i&k].n1.n.Colonne=Ensemble[j&l].n1.n.Colonne) ET (j<>i) ALORS
+						Test <- FAUX
+					FINSI
+				FINPOUR
+			FINPOUR
+		FINPOUR
+	FINPOUR
+	
+	TestCase <- Test
+FIN
+
+//BUT:		converti les chaine (caractere) en entier (Ex:'10'>10)
+//ENTREE:	1 CHAINE
+//SORTIE:	1 entier
+
+FONCTION convertisseur1(car:CHAINE):ENTIER
+
+DEBUT
+		SI longueur(car) = 1 ALORS
+			SI(ord(car[1]) >= 48) ET (ord(car[1]) <= 57) ALORS
+		 		convertisseur1<-ord(car[1])-48
+			SINON
+				convertisseur1 <- 0
+			FINSI
+		FINSI
+			SI longueur(car)=2 ALORS
+				SI (ord(car[1]) = 49) ET (ord(car[2]) = 48)ALORS
+					convertisseur1 <- 10
+				SINON
+					convertisseur1 <- 0
+				FINSI
+		FINSI
+FIN
+
+//BUT:		Convertisseur pour les char 
+//ENTREE:	1 caractere
+//SORTIE:	1 entier
+
+FONCTION convertisseur2(car:CHAR):ENTIER
+
+DEBUT
+	SI(ord(car) >= 97 ) ET (ord(car) < 97+Max) ALORS
+		convertisseur2 <- ord(car)-96
+	SINON
+		convertisseur2 <- 11
+	FINSI
+FIN
+
+//BUT:		Test Si les coordonner entrer existe
+//ENTREE:	1 tableau type TabFlotte, 1 tableau type TabBateau, 1 tableau type TabCellule, 3 entier
+//SORTIE:	1 BOOLEEN
+
+FONCTION trouver(Ensemble:TabFlotte ; Bateau:TabBateau ; PosCellule:TabCellule x,y:ENTIER VAR nbr:ENTIER):BOOLEEN
+
+VAR
+	i : ENTIER
+	j : ENTIER
+	Test : BOOLEEN
+
+DEBUT
+	Test <- FAUX
+	POUR i DE 1 A BateauMax FAIRE
+		POUR j DE 1 A Bateau[i].Taille FAIRE
+			SI (Ensemble[i&j].n1.n.Colonne=PosCellule[y].Colonne) ET (Ensemble[i&j].n1.n.Ligne=PosCellule[x].Ligne) ALORS
+				Test <- VRAI
+				nbr <- i 														//Si la position entree = a la position du bateau
+			FINSI
+		FINPOUR
+	FINPOUR
+	
+	trouver <- Test
+FIN
+
+//BUT:		Test si tout les bateau on couler
+//ENTREE:	1 tableau type Tab
+//SORTIE:	1 BOOLEEN
+
+FONCTION final(Nb:Tab):BOOLEEN
+
+VAR
+	i : ENTIER
+	cpt : ENTIER
+	Test : BOOLEEN
+	
+DEBUT
+	Test <- FAUX
+	cpt <- 0
+	POUR i DE 1 A BateauMax FAIRE
+		SI Nb[i]<1 ALORS
+			cpt <- cpt+1
+			SI cpt = BateauMax ALORS
+				Test<-VRAI
+			FINSI
+		FINSI
+	FINPOUR
+	
+	final <- Test
+FIN
+
+//BUT:	Affecte les valeur x y a Pos
+//ENTREE:	1 tableau type PosCellule, 2 entier
+//SORTIE:	Tableau N valeur
+
+PROCEDURE CreateCellule(VAR PosCellule:TabCellule)
+VAR
+	cpt : ENTIER
+	i : ENTIER
+	
+DEBUT	
+	
+	cpt <- 7
+	POUR i DE 1 A Max FAIRE						//Valeur des cases y
+		PosCellule[i].Ligne <- cpt
+		cpt<-cpt+4
+	FINPOUR
+	cpt<-8
+	POUR i DE 1 A Max FAIRE						//Valeur des cases x
+		PosCellule[i].Colonne <- cpt
+		cpt <- cpt+3
+	FINPOUR
+FIN
+
+//BUT:		Affecte les valeur des Cellules a bateau
+//ENTREE:	1 tableau type TabCellule, 1 tableau type TabBateau, 4 entier, 1 BOOLEEN
+//SORTIE:	1 tableau N Cellule
+
+PROCEDURE CreateBateau (PosCellule:TabCellule; VAR Bateau:TabBateau i:ENTIER)
+
+VAR
+	j : ENTIER
+	x : ENTIER
+	y : ENTIER
+	randdirection : ENTIER
+	Test : BOOLEEN
+DEBUT
+	REPETER
+	Randomize
+			
+		randDirection <- Random(2)+1				 					//Pour choisir le positionnement au hasard
+	
+		cas randDirection PARMIS
+			CAS1 :	DEBUT												//Positionnement bateau vertical
+		
+						REPETE
+							x <- Random(Max)+1 							//positionnement au hasard
+							y<-Random(Max)+1
+						JUSQUA (y<=Max-Bateau[i].Taille)
+						FINREPETER
+					
+						Test<-TestCaseColonne(Bateau&PosCellule&x&y&i) 	//Test si les cases sont vide pour le bateau
+					
+						SI Test = VRAI ALORS					
+							POUR j de 1 A Bateau[i].Taille FAIRE						
+								Bateau[j].n.Colonne <- PosCellule[(y+j)-1].Colonne
+								Bateau[j].n.Ligne <- PosCellule[x].Ligne
+							FINPOUR						
+						FINSI					
+					FIN
+			
+			CAS2 :	DEBUT												//Positionnement horizontal
+			
+					REPETER
+						x<-Random(Max)+1 								//positionnement au hasard
+						y<-Random(Max)+1
+					JUSQUA (x <= Max-Bateau[i].Taille)
+					
+					Test <- TestCaseLigne(Bateau&PosCellule&x&y&i) 		//Test si les cases sont vide pour le bateau
+					SI Test = VRAI ALORS
+						POUR j<-1 A Bateau[i].Taille FAIRE
+							Bateau[j].n.Colonne <- PosCellule[y].Colonne
+							Bateau[j].n.Ligne <- PosCellule[(x+j)-1].Ligne
+						FINPOUR
+					FINSI
+				FIN
+		FINCAS
+	JUSQUA (Test=VRAI)
+FIN
+
+//BUT:		definir la Taille d'un bateau
+//ENTREE:	1 tableau type TabBateau et un tableau typea Tab et  2 entier
+//SORTIE:	un tableau type Tab avec Nbr entier
+
+PROCEDURE TailleBateau(VAR Bateau:TabBateau ; VAR TailleB:Tab)
+
+VAR
+	i : ENTIER
+	nbr : ENTIER
+	
+DEBUT
+	
+	Randomize
+	
+	POUR i DE 1 A BateauMax FAIRE
+		REPETER
+			nbr <- Random(TailleMax)+1
+		JUSQUA nbr > 1
+		
+		Bateau[i].Taille <- nbr
+		TailleB[i] <- Bateau[i].Taille
+	FINPOUR
+FIN
+
+//BUT:	Affecte les valeurs des Bateau a la Flotte
+//ENTREE:	1 tableau type TabBateau et 1 tableau type TabCellule et 1 tableau type Ensemble et 2 entier et 1 BOOLEEN
+//SORTIE:	Tableau type TabFlotte avec N valeur entier
+
+PROCEDURE CreateFlotte (Bateau:TabBateau ; PosCellule:TabCellule ; VAR Ensemble:TabFlotte)
+
+VAR
+	i : ENTIER
+	j : ENTIER
+	Test : BOOLEEN
+	
+DEBUT
+	REPETER
+		IniTabFlotte(Bateau&Ensemble)
+		
+		POUR i DE 1 A BateauMax FAIRE
+			CreateBateau(PosCellule&Bateau&i)
+			POUR j DE 1 A Bateau[i].Taille FAIRE	
+					Ensemble[i&j].n1.n.Ligne <- Bateau[j].n.Ligne
+					Ensemble[i&j].n1.n.Colonne <- Bateau[j].n.Colonne
+			FINPOUR
+		FINPOUR
+		Test <- TestCase(Bateau,Ensemble)
+	JUSQUA (Test=VRAI)
+FIN
+	
+//DEBUT programme principal
+
+VAR
+	
+	PosCellule : TabCellule
+	Celluletouche : TabCellule
+	bateau : TabBateau
+	Nom : TabNom
+	TailleB : Tab
+	margin : Marge
+	Ensemble : TabFlotte
+	x1 : ENTIER
+	y1 : ENTIER
+	i : ENTIER
+	k : ENTIER
+	j : ENTIER
+	nbr : ENTIER
+	y : CHAR
+	x : CHAINE
+	Test : BOOLEEN
+	
+	
+DEBUT	
+	
+	IniTabCellule(PosCellule&CelluleAuche) 														// Init des Cellules
+	AfficheMap() 																				//affiche le terrain
+	
+	CreateCellule(PosCellule) 																	//créer les Cellules
+	TailleBateau(Bateau&TailleB) 																//defini le nombre de Cellule des bateau
+	
+	CreateFlotte(Bateau&PosCellule&Ensemble) 													//creer la Flotte de bateau
+	
+	
+	//Affiche la Flotte
+	{ POUR j DE 1 A BateauMax FAIRE
+		 POUR k DE 1 A Bateau[j].Taille FAIRE
+			GoAxY(Ensemble[j&k].n1.n.Ligne&Ensemble[j&k].n1.n.Colonne)
+			ECRIRE j
+		 FINPOUR
+	 FINPOUR 
+	
+	margin.x <- (Max*4)+10
+	margin.y <- Max
+	
+					//AfficherFlotte(Bateau&margin&TailleB)
+	
+	REPETER															//boucle FIN 
+			REPETER										//boucle coord x
+				GoAxY(margin.x & margin.y+13)
+				ECRIRE 'Coordonne x ? 1-10'
+				GoAxY(margin.x & margin.y+14)
+				ECRIRE '.'
+				LIRE x
+				x1 <- convertisseur1(x)
+				SI (x1=0) ALORS
+					POUR i DE margin.x A margin.x+10 FAIRE
+						GoAxY(i&margin.y+14)
+						ECRIRE' '
+					FINPOUR
+				FINSI
+			JUSQUA (x1 <> 0) ET (x <> '')
+			clrtxt3
+			
+			REPETER									//boucle coord y
+				GoAxY(margin.x & margin.y+15)
+				ECRIRE 'Coordonne y ? a-j'
+				GoAxY(margin.x & margin.y+16)
+				ECRIRE '.'
+				LIRE y
+				y <- LowerCase(y)
+				y1 <- convertisseur2(y)
+				SI (y1=11) ALORS
+					POUR i DE margin.x A margin.x+10 FAIRE
+						GoAxY(i & margin.y+16)
+						ECRIRE' '
+					FINPOUR
+				FINSI
+			JUSQUA (y1 <> 11)
+		
+					//si les valeur corresponde
+		Test <- trouver(Ensemble & Bateau & PosCellule & x1 & y1 & nbr)
+		SI Test=VRAI ALORS															//si les Cellule touche est different de la Cellule donne
+			SI (CelluleAuche[nbr].Ligne <> PosCellule[x1].Ligne) OU (CelluleAuche[nbr].Colonne <> PosCellule[y1].Colonne) ALORS				
+				SI (TailleB[nbr]>0) ALORS
+					CelluleAuche[nbr].Ligne <- PosCellule[x1].Ligne
+					CelluleAuche[nbr].Colonne <- PosCellule[y1].Colonne
+					GoAxY(PosCellule[x1].Ligne&PosCellule[y1].Colonne)
+					ECRIRE'X'
+					GoAxY(margin.x & margin.y+24)
+					ECRIRE(Nom[nbr] & ' Aucher !')
+					TailleB[nbr] <- TailleB[nbr]-1
+				FINSI 			
+				SI TailleB[nbr] <= 0 ALORS											//si Bateau detruit
+					GoAxY(margin.x&margin.y+25)
+					ECRIRE 'vous avez coule un Bateau !'
+					POUR i DE 1 A Bateau[nbr].Taille FAIRE
+						GoAxY(Ensemble[nbr&i].n1.n.Ligne & Ensemble[nbr&i].n1.n.Colonne)
+						ECRIRE 'C'
+					FINPOUR
+					TailleB[nbr] <- (-1)
+				FINSI
+			FINSI
+		SINONSI
+			GoAxY(PosCellule[x1].Ligne&PosCellule[y1].Colonne)
+			ECRIRE '0'
+		FINSI
+		clrtxt2			
+		Test<-FINal(TailleB)					 // Test si tout les bateau detruit
+	JUSQUA Test=VRAI 							//FIN du jeu
+	delay(2000)
+	
+	clrtxt3
+	
+	GoAxY(margin.x & margin.y+24)
+	ECRIRE 'FIN de la partie '
+FIN.}
